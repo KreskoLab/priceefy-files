@@ -14,6 +14,7 @@ const products = deta.Drive("products");
 
 const app = express();
 
+app.use(express.json());
 app.use(upload());
 
 app.use(
@@ -76,7 +77,7 @@ app.post("/upload", async (req, res) => {
   }
 
   if (buffer) {
-    await icons.put(name, { data: buffer });
+    await icons.put(name, { data: Buffer.from(buffer) });
   }
 
   res.send("ok");
