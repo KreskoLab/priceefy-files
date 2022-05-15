@@ -24,7 +24,7 @@ app.use(
 );
 
 app.get("/", async (req, res) => {
-  res.send("hello");
+  res.send("oks");
 });
 
 app.get("/image/:type/:name/", async (req, res) => {
@@ -34,10 +34,19 @@ app.get("/image/:type/:name/", async (req, res) => {
 
     const iconBuff = Buffer.from(await buf.arrayBuffer());
 
-    res.writeHead(200, {
-      "Content-Type": "image/*",
-      "Content-Length": iconBuff.length,
-    });
+    const ext = name.split(".").pop();
+
+    if (ext === "svg") {
+      res.writeHead(200, {
+        "Content-Type": "image/svg+xml",
+        "Content-Length": iconBuff.length,
+      });
+    } else {
+      res.writeHead(200, {
+        "Content-Type": "image/*",
+        "Content-Length": iconBuff.length,
+      });
+    }
 
     res.end(iconBuff);
   }
@@ -67,7 +76,9 @@ app.get("/image/:type/:name/", async (req, res) => {
 app.post("/upload", async (req, res) => {
   const { name, url, buffer } = req.body;
 
-  if (url) {
+  const exist = await fileExists(`${name}.png`);
+
+  if (url && !exist) {
     const response = await fetch(url);
 
     if (response) {
@@ -82,6 +93,14 @@ app.post("/upload", async (req, res) => {
 
   res.send("ok");
 });
+
+async function fileExists(name) {
+  const res = await products.get(name);
+
+  if (res === null) {
+    return false;
+  } else return true;
+}
 
 app.listen(process.env.PORT, () => {
   console.log("Server started");
